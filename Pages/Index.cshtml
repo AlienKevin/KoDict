@@ -4,6 +4,35 @@
     ViewData["Title"] = "Home page";
 }
 
-<label for="search">Search:</label>
-<input type="text" id="search" name="search">
-<span>@Model.dict.entries[0].word</span>
+<form>
+    <p>
+        <input type="text" asp-for="SearchString" />
+        <input type="submit" value="Search" />
+    </p>
+</form>
+
+@{
+    if (Model.Entry != null) {
+        <span>@Model.Entry.word</span>
+        <span>&nbsp;(@Model.Entry.origin)</span>
+        <span>&nbsp;[@(String.Join(", ", Model.Entry.prs))]</span>
+        <span>&nbsp;@Model.Entry.pos</span>
+        <ol>
+        @foreach (Dict.Sense sense in Model.Entry.senses) {
+            <li>
+            <span>&nbsp;@sense.english_lemma</span><br>
+            <span>&nbsp;@sense.english_definition</span>
+            <ul>
+                @foreach (Dict.Example example in sense.examples) {
+                    if (example.type != "Phrase") {
+                        <li><span>@example.expr</span></li>
+                    }
+                }
+            </ul>
+            </li>
+        }
+        </ol>
+    } else {
+        <span>No entry found.</span>
+    }
+}
