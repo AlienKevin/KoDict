@@ -1,0 +1,9 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<label for="search">Search:</label>
+<input type="text" id="search" name="search">
+<span>@Model.dict.entries[0].word</span>
