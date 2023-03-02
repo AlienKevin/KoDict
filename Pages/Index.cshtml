@@ -19,12 +19,12 @@
         <span class="headline">@Model.Entry.word</span>
         if (Model.Entry.origin != "?") { <span>&nbsp;(@Model.Entry.origin)</span> }
         if (Model.Entry.prs.Count > 0) { <span>&nbsp;[@(String.Join(", ", Model.Entry.prs))]</span> }
-        <span>@Model.Entry.pos</span>
+        <span>@Model.Entry.pos</span><br>
         if (DerivedPr == Model.Entry.prs[0])
         {
             var ArrowStyle = "font-size:1.5em; position:relative; bottom:-0.1em; line-height:1em; padding-left: 0.2em; padding-right: 0.2em;";
             if (PrsExplanations.Count > 0) {
-                <br><span class="subtitle">Sound Changes</span>
+                <span class="subtitle">Sound Changes</span>
             }
             if (PrsExplanations.Count == 1) {
                 <p>@Model.Entry.word<span style="@ArrowStyle">⇒</span>@(PrsExplanations.First().result)  @(PrsExplanations.First().rule)</p>
