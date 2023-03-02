@@ -8,7 +8,7 @@ public class IndexModel : PageModel
     private readonly ILogger<IndexModel> _logger;
     private Dict Dict = new Dict();
     [BindProperty(SupportsGet = true)]
-    public string? SearchString { get; set; }
+    public string? Word { get; set; }
     public Dict.Entry? Entry;
 
     public IndexModel(ILogger<IndexModel> logger)
@@ -17,9 +17,9 @@ public class IndexModel : PageModel
     }
     public async Task OnGetAsync()
     {
-        if (!string.IsNullOrEmpty(SearchString))
+        if (!string.IsNullOrEmpty(Word))
         {
-            this.Entry = this.Dict.entries.Where(s => s.word == SearchString).FirstOrDefault();
+            this.Entry = this.Dict.entries.Where(s => s.word == Word).FirstOrDefault();
         }
     }
 }
