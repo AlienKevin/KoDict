@@ -1,4 +1,4 @@
-class Hangeul
+public class Hangeul
 {
 
     public static int Jamo2HangeulCompatibilityJamo(int jamo)

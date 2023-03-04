@@ -1,4 +1,3 @@
-using System.IO.Compression;
 using MessagePack;
 
 public class Dict
@@ -40,12 +39,14 @@ public class Dict
         public List<Sense> Senses;
     }
 
-    public List<Entry> entries;
+    public List<Entry> Entries;
 
     public Dict()
     {
-        byte[] msgpack = File.ReadAllBytes("dict.msgpack.l4z");
+        var dictName = "dict.msgpack.l4z";
+        var dictPath = File.Exists(dictName) ? dictName : $"../KoDict/{dictName}";
+        byte[] msgpack = File.ReadAllBytes(dictPath);
         var lz4Options = MessagePackSerializerOptions.Standard.WithCompression(MessagePackCompression.Lz4Block);
-        this.entries = MessagePackSerializer.Deserialize<List<Entry>>(msgpack, lz4Options);
+        this.Entries = MessagePackSerializer.Deserialize<List<Entry>>(msgpack, lz4Options);
     }
 }

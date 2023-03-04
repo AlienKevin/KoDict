@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace KoDict.Pages;
+namespace KoDict;
 
 public class IndexModel : PageModel
 {
@@ -19,7 +19,7 @@ public class IndexModel : PageModel
     {
         if (!string.IsNullOrEmpty(Word))
         {
-            this.Entry = this.Dict.entries.Where(s => s.Word == Word).FirstOrDefault();
+            this.Entry = this.Dict.Entries.Where(s => s.Word == Word).FirstOrDefault();
         }
     }
 }
