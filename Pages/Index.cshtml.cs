@@ -19,7 +19,7 @@ public class IndexModel : PageModel
     {
         if (!string.IsNullOrEmpty(Word))
         {
-            this.Entry = this.Dict.entries.Where(s => s.word == Word).FirstOrDefault();
+            this.Entry = this.Dict.entries.Where(s => s.Word == Word).FirstOrDefault();
         }
     }
 }

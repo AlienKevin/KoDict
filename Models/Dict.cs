@@ -1,38 +1,51 @@
-using Newtonsoft.Json;
+using System.IO.Compression;
+using MessagePack;
 
 public class Dict
 {
+    [MessagePackObject]
     public class Example
     {
-        public string type;
-        public string expr;
+        [Key("type")]
+        public string Type;
+        [Key("ko")]
+        public string Expr;
     }
 
+    [MessagePackObject]
     public class Sense
     {
-        public string english_lemma;
-        public string english_definition;
-        public List<Example> examples;
+        [Key("english_lemma")]
+        public string EnglishLemma;
+        [Key("english_definition")]
+        public string EnglishDefinition;
+        [Key("examples")]
+        public List<Example> Examples;
     }
 
+    [MessagePackObject]
     public class Entry
     {
-        public string word;
-        public string origin;
-        public string vocabulary_level;
-        public string pos;
-        public List<string> prs;
-        public List<Sense> senses;
+        [Key("word")]
+        public string Word;
+        [Key("origin")]
+        public string Origin;
+        [Key("vocabulary_level")]
+        public string VocabularyLevel;
+        [Key("pos")]
+        public string Pos;
+        [Key("prs")]
+        public List<string> Prs;
+        [Key("senses")]
+        public List<Sense> Senses;
     }
 
     public List<Entry> entries;
 
     public Dict()
     {
-        using (StreamReader r = new StreamReader("dict.json"))
-        {
-            string json = r.ReadToEnd();
-            this.entries = JsonConvert.DeserializeObject<List<Entry>>(json);
-        }
+        byte[] msgpack = File.ReadAllBytes("dict.msgpack.l4z");
+        var lz4Options = MessagePackSerializerOptions.Standard.WithCompression(MessagePackCompression.Lz4Block);
+        this.entries = MessagePackSerializer.Deserialize<List<Entry>>(msgpack, lz4Options);
     }
 }

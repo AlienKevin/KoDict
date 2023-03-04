@@ -15,24 +15,24 @@
 @{
     if (Model.Entry != null)
     {
-        var (DerivedPr, PrsExplanations) = Hangeul2Sounds.ToSounds(Model.Entry.word);
-        <span class="headline">@Model.Entry.word</span>
-        if (Model.Entry.origin != "?") { <span>&nbsp;(@Model.Entry.origin)</span> }
-        if (Model.Entry.prs.Count > 0) { <span>&nbsp;[@(String.Join(", ", Model.Entry.prs))]</span> }
-        <span>@Model.Entry.pos</span><br>
-        if (DerivedPr == Model.Entry.prs[0])
+        var (DerivedPr, PrsExplanations) = Hangeul2Sounds.ToSounds(Model.Entry.Word);
+        <span class="headline">@Model.Entry.Word</span>
+        if (Model.Entry.Origin != "?") { <span>&nbsp;(@Model.Entry.Origin)</span> }
+        if (Model.Entry.Prs.Count > 0) { <span>&nbsp;[@(String.Join(", ", Model.Entry.Prs))]</span> }
+        <span>@Model.Entry.Pos</span><br>
+        if (DerivedPr == Model.Entry.Prs[0])
         {
             var ArrowStyle = "font-size:1.5em; position:relative; bottom:-0.1em; line-height:1em; padding-left: 0.2em; padding-right: 0.2em;";
             if (PrsExplanations.Count > 0) {
                 <span class="subtitle">Sound Changes</span>
             }
             if (PrsExplanations.Count == 1) {
-                <p>@Model.Entry.word<span style="@ArrowStyle">⇒</span>@(PrsExplanations.First().result)  @(PrsExplanations.First().rule)</p>
+                <p>@Model.Entry.Word<span style="@ArrowStyle">⇒</span>@(PrsExplanations.First().result)  @(PrsExplanations.First().rule)</p>
             } else if (PrsExplanations.Count > 1) {
                 <ol>
                     @for (int i = 0; i < PrsExplanations.Count; i++)
                     {
-                        var PrevResult = i == 0 ? Model.Entry.word : PrsExplanations[i - 1].result;
+                        var PrevResult = i == 0 ? Model.Entry.Word : PrsExplanations[i - 1].result;
                         var CurrResult = PrsExplanations[i].result;
                         var DiffMask = PrevResult.Zip(CurrResult, (PrevChar, CurrChar) => PrevChar != CurrChar);
                         IHtmlContent ShowResult(string Result)
@@ -56,17 +56,17 @@
         }
         <span class="subtitle">Definitions</span>
         <ol>
-            @foreach (Dict.Sense sense in Model.Entry.senses)
+            @foreach (Dict.Sense sense in Model.Entry.Senses)
             {
                 <li>
-                    <span>&nbsp;<b>@sense.english_lemma</b></span><br>
-                    <span>&nbsp;@sense.english_definition</span>
+                    <span>&nbsp;<b>@sense.EnglishLemma</b></span><br>
+                    <span>&nbsp;@sense.EnglishDefinition</span>
                     <ul>
-                        @foreach (Dict.Example example in sense.examples)
+                        @foreach (Dict.Example example in sense.Examples)
                         {
-                            if (example.type != "Phrase")
+                            if (example.Type != "Phrase")
                             {
-                                <li><span>@example.expr</span></li>
+                                <li><span>@example.Expr</span></li>
                             }
                         }
                     </ul>
