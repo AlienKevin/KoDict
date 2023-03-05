@@ -89,6 +89,10 @@
 }
 
 @if (Model.MatchedEntries != null) {
+    if (!Model.MatchedEntries.IsExact())
+    {
+        <span class="subtitle">Did you mean?</span>
+    }
     if (Model.MatchedEntries.GetEntries().Count() == 1)
     {
         ShowEntryGroup(Model.MatchedEntries.GetEntries().First().Word);
