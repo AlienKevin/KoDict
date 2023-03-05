@@ -9,7 +9,7 @@ public class IndexModel : PageModel
     private Dict Dict = new Dict();
     [BindProperty(SupportsGet = true)]
     public string? Word { get; set; }
-    public List<Dict.Entry> MatchedEntries = new List<Dict.Entry>();
+    public Dict.Match? MatchedEntries;
     [BindProperty(SupportsGet = true)]
     public int? Index { get; set; }
 
@@ -23,5 +23,9 @@ public class IndexModel : PageModel
         {
             this.MatchedEntries = this.Dict.lookupWord(Word);
         }
+    }
+    public List<Dict.Entry> GetEntryGroup(string word)
+    {
+        return this.Dict.lookupWord(word).GetEntries();
     }
 }

@@ -29,6 +29,8 @@ public class Dict
     {
         [Key("word")]
         public string Word;
+        [Key("index")]
+        public int Index;
         [Key("origin")]
         public string Origin;
         [Key("vocabulary_level")]
@@ -50,25 +52,58 @@ public class Dict
         return File.ReadAllBytes(File.Exists(filename) ? filename : $"../KoDict/{filename}");
     }
 
-    internal List<Entry> lookupWord(string query)
+    public record Match
     {
-        List<Entry> results = new List<Entry>();
+        public record ExactMatch(List<Entry> Entries) : Match();
+        public record D1Match(List<Entry> Entries) : Match();
+
+        private Match() { }
+
+        public List<Entry> GetEntries()
+        {
+            return this switch
+            {
+                ExactMatch entries => entries.Entries,
+                D1Match entries => entries.Entries,
+            };
+        }
+
+        public bool IsExact()
+        {
+            return this switch
+            {
+                ExactMatch _ => true,
+                _ => false,
+            };
+        }
+    }
+
+    internal Match lookupWord(string query)
+    {
         List<int> d0Index;
         List<int> d1Index;
-        ulong queryHash = Farmhash.Sharp.Farmhash.Hash64(Hangeul.Hangeuls2Jamos(query));
+        string queryJamos = Hangeul.Hangeuls2Jamos(query);
+        ulong queryHash = Farmhash.Sharp.Farmhash.Hash64(queryJamos);
         if (this.d0Neighborhood.TryGetValue(queryHash, out d0Index))
         {
-            results.AddRange(d0Index.Select(index => this.Entries[index]));
+            return new Match.ExactMatch(d0Index.Select(index => this.Entries[index]).ToList());
         }
-        else if (this.d1Neighborhood.TryGetValue(queryHash, out d1Index))
+        else
         {
-            results.AddRange(d1Index.Select(index =>
+            List<Entry> results = new List<Entry>();
+            for (var k = 0; k < queryJamos.Count(); k++)
             {
-                string word = this.Entries[index].Word;
-                return (index, Fastenshtein.Levenshtein.Distance(word, query));
-            }).Where((index, d) => d <= 1).OrderBy(indexAndD => indexAndD.Item2).Select(indexAndD => this.Entries[indexAndD.Item1]));
+                ulong queryD1Hash = Farmhash.Sharp.Farmhash.Hash64(queryJamos.Remove(k, 1));
+                if (this.d1Neighborhood.TryGetValue(queryD1Hash, out d1Index))
+                    results.AddRange(d1Index.Select(index =>
+                    {
+                        string wordJamos = Hangeul.Hangeuls2Jamos(this.Entries[index].Word);
+                        // System.Console.WriteLine($"{wordJamos} {queryJamos} {Fastenshtein.Levenshtein.Distance(wordJamos, queryJamos)}");
+                        return (index, Fastenshtein.Levenshtein.Distance(wordJamos, queryJamos));
+                    }).Where(indexAndD => indexAndD.Item2 <= 1).OrderBy(indexAndD => indexAndD.Item2).Select(indexAndD => this.Entries[indexAndD.Item1]));
+            }
+            return new Match.D1Match(results);
         }
-        return results;
     }
 
     public Dict()
