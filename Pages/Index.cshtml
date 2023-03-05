@@ -86,7 +86,7 @@
 }
 
 @if (Model.MatchedEntries != null) {
-    if (!Model.MatchedEntries.IsExact())
+    if (!Model.MatchedEntries.IsExact() && Model.MatchedEntries.GetEntries().Count() > 0)
     {
         <span class="subtitle">Did you mean?</span>
     }
