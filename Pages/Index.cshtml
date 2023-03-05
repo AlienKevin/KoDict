@@ -65,12 +65,9 @@
                     <span>&nbsp;<b>@sense.EnglishLemma</b></span><br>
                     <span>&nbsp;@sense.EnglishDefinition</span>
                     <ul>
-                        @foreach (Dict.Example example in sense.Examples)
+                        @foreach (Dict.Example example in sense.Examples.Where(example => example.Type == "Phrase").Take(3))
                         {
-                            if (example.Type != "Phrase")
-                            {
-                                <li><span>@example.Expr</span></li>
-                            }
+                            <li><span>@example.Expr</span></li>
                         }
                     </ul>
                 </li>
