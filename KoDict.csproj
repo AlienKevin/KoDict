@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="Farmhash.Sharp" Version="0.9.0" />
+    <PackageReference Include="Fastenshtein" Version="1.0.0.8" />
     <PackageReference Include="MessagePack" Version="2.4.59" />
   </ItemGroup>
 

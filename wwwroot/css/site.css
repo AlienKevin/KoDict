@@ -28,7 +28,7 @@ body {
 }
 
 .subtitle {
-  color: grey;
+  color: var(--bs-secondary);
 }
 
 li {

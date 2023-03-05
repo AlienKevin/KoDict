@@ -9,7 +9,9 @@ public class IndexModel : PageModel
     private Dict Dict = new Dict();
     [BindProperty(SupportsGet = true)]
     public string? Word { get; set; }
-    public Dict.Entry? Entry;
+    public List<Dict.Entry> MatchedEntries = new List<Dict.Entry>();
+    [BindProperty(SupportsGet = true)]
+    public int? Index { get; set; }
 
     public IndexModel(ILogger<IndexModel> logger)
     {
@@ -19,7 +21,7 @@ public class IndexModel : PageModel
     {
         if (!string.IsNullOrEmpty(Word))
         {
-            this.Entry = this.Dict.Entries.Where(s => s.Word == Word).FirstOrDefault();
+            this.MatchedEntries = this.Dict.lookupWord(Word);
         }
     }
 }
