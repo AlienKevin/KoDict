@@ -46,25 +46,38 @@ public class Dict
     public List<Entry> Entries;
     private Index d0Neighborhood;
     private Index d1Neighborhood;
+    private Index enD0Neighborhood;
+    private Index enD1Neighborhood;
 
     private byte[] readBytes(string filename)
     {
         return File.ReadAllBytes(File.Exists(filename) ? filename : $"../KoDict/{filename}");
     }
 
+    public record MatchIndex(int EntryIndex, int SenseIndex);
+
     public record Match
     {
-        public record ExactMatch(List<Entry> Entries) : Match();
-        public record D1Match(List<Entry> Entries) : Match();
+        public record ExactMatch(List<MatchIndex> Indices) : Match();
+        public record D1Match(List<MatchIndex> Indices) : Match();
 
         private Match() { }
 
-        public List<Entry> GetEntries()
+        public List<MatchIndex> GetMatchIndices()
         {
             return this switch
             {
-                ExactMatch entries => entries.Entries,
-                D1Match entries => entries.Entries,
+                ExactMatch match => match.Indices,
+                D1Match match => match.Indices,
+            };
+        }
+
+        public List<Entry> GetEntries(Dict dict)
+        {
+            return this switch
+            {
+                ExactMatch match => match.Indices.Select((index) => dict.Entries[index.EntryIndex]).ToList(),
+                D1Match match => match.Indices.Select((index) => dict.Entries[index.EntryIndex]).ToList(),
             };
         }
 
@@ -86,11 +99,11 @@ public class Dict
         ulong queryHash = Farmhash.Sharp.Farmhash.Hash64(queryJamos);
         if (this.d0Neighborhood.TryGetValue(queryHash, out d0Index))
         {
-            return new Match.ExactMatch(d0Index.Select(index => this.Entries[index]).ToList());
+            return new Match.ExactMatch(d0Index.Select(index => new MatchIndex(EntryIndex: index, SenseIndex: 0)).ToList());
         }
         else
         {
-            List<Entry> results = new List<Entry>();
+            List<MatchIndex> results = new List<MatchIndex>();
             for (var k = 0; k < queryJamos.Count(); k++)
             {
                 ulong queryD1Hash = Farmhash.Sharp.Farmhash.Hash64(queryJamos.Remove(k, 1));
@@ -100,8 +113,64 @@ public class Dict
                         string wordJamos = Hangeul.Hangeuls2Jamos(this.Entries[index].Word);
                         // System.Console.WriteLine($"{wordJamos} {queryJamos} {Fastenshtein.Levenshtein.Distance(wordJamos, queryJamos)}");
                         return (index, Fastenshtein.Levenshtein.Distance(wordJamos, queryJamos));
-                    }).Where(indexAndD => indexAndD.Item2 <= 1).OrderBy(indexAndD => indexAndD.Item2).Select(indexAndD => this.Entries[indexAndD.Item1]));
+                    }).Where(indexAndD => indexAndD.Item2 <= 1).OrderBy(indexAndD => indexAndD.Item2)
+                    .Select(indexAndD => new MatchIndex(EntryIndex: indexAndD.Item1, SenseIndex: 0)));
             }
+            if (results.Count() == 0)
+            {
+                return lookupEnWord(query);
+            }
+            else
+            {
+                return new Match.D1Match(results);
+            }
+        }
+    }
+
+    public static int PackEntryAndSenseIndex(int entryIndex, int senseIndex)
+    {
+        // Compress entryIndex and senseIndex into a single 32-bit signed integer
+        // Assume entryIndex is less than 2^(31 - 6) = 33554432
+        // ASsume senseIndex is less than 2^6 = 64
+        return (entryIndex << 6) | senseIndex;
+    }
+
+    public static MatchIndex UnpackEntryAndSenseIndex(int index)
+    {
+        // System.Console.WriteLine($"index: {index}");
+        // System.Console.WriteLine($"EntryIndex: {index >> 6}");
+        // System.Console.WriteLine($"SenseIndex: {index & 0b111111}");
+        return new MatchIndex(EntryIndex: index >> 6, SenseIndex: index & 0b111111);
+    }
+
+    private Match lookupEnWord(string query_)
+    {
+        List<int> d0Index;
+        List<int> d1Index;
+        string query = query_.ToLower();
+        ulong queryHash = Farmhash.Sharp.Farmhash.Hash64(query);
+        if (this.enD0Neighborhood.TryGetValue(queryHash, out d0Index))
+        {
+            return new Match.ExactMatch(d0Index.Select(index => UnpackEntryAndSenseIndex(index)).ToList());
+        }
+        else
+        {
+            List<MatchIndex> results = new List<MatchIndex>();
+            for (var k = -1; k < query.Count(); k++)
+            {
+                ulong queryD1Hash = Farmhash.Sharp.Farmhash.Hash64(k < 0 ? query : query.Remove(k, 1));
+                if (this.enD1Neighborhood.TryGetValue(queryD1Hash, out d1Index))
+                    results.AddRange(d1Index.Select(index =>
+                    {
+                        var matchIndex = Dict.UnpackEntryAndSenseIndex(index);
+                        var minD = this.Entries[matchIndex.EntryIndex].Senses[matchIndex.SenseIndex].EnglishLemma.Split("; ")
+                        .Select(word => Fastenshtein.Levenshtein.Distance(word, query)).Min();
+                        System.Console.WriteLine($"minD: {minD}");
+                        return (index, minD);
+                    }).Where(indexAndD => indexAndD.Item2 <= 1).OrderBy(indexAndD => indexAndD.Item2)
+                    .Select(indexAndD => UnpackEntryAndSenseIndex(indexAndD.Item1)));
+            }
+
             return new Match.D1Match(results);
         }
     }
@@ -115,5 +184,9 @@ public class Dict
         this.d0Neighborhood = MessagePackSerializer.Deserialize<Index>(d0NeighborhoodMsgpack);
         byte[] d1NeighborhoodMsgpack = readBytes("d1Neighborhood.msgpack");
         this.d1Neighborhood = MessagePackSerializer.Deserialize<Index>(d1NeighborhoodMsgpack);
+        byte[] enD0NeighborhoodMsgpack = readBytes("enD0Neighborhood.msgpack");
+        this.enD0Neighborhood = MessagePackSerializer.Deserialize<Index>(enD0NeighborhoodMsgpack);
+        byte[] enD1NeighborhoodMsgpack = readBytes("enD1Neighborhood.msgpack");
+        this.enD1Neighborhood = MessagePackSerializer.Deserialize<Index>(enD1NeighborhoodMsgpack);
     }
 }

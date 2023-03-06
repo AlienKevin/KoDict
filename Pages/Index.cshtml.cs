@@ -9,7 +9,7 @@ public class IndexModel : PageModel
     private Dict Dict = new Dict();
     [BindProperty(SupportsGet = true)]
     public string? Word { get; set; }
-    public Dict.Match? MatchedEntries;
+    public Dict.Match? MatchedIndices;
     [BindProperty(SupportsGet = true)]
     public int? Index { get; set; }
 
@@ -21,11 +21,23 @@ public class IndexModel : PageModel
     {
         if (!string.IsNullOrEmpty(Word))
         {
-            this.MatchedEntries = this.Dict.lookupWord(Word);
+            this.MatchedIndices = this.Dict.lookupWord(Word);
         }
     }
     public List<Dict.Entry> GetEntryGroup(string word)
     {
-        return this.Dict.lookupWord(word).GetEntries();
+        return this.Dict.lookupWord(word).GetEntries(this.Dict);
+    }
+    public Dict.Entry GetEntryByIndex(int entryIndex)
+    {
+        return this.Dict.Entries[entryIndex];
+    }
+    public List<Dict.Entry> GetMatchEntries()
+    {
+        return this.MatchedIndices.GetEntries(this.Dict);
+    }
+    public List<Dict.MatchIndex> GetMatchIndices()
+    {
+        return this.MatchedIndices.GetMatchIndices();
     }
 }

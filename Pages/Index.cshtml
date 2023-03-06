@@ -85,18 +85,18 @@
     }
 }
 
-@if (Model.MatchedEntries != null) {
-    if (!Model.MatchedEntries.IsExact() && Model.MatchedEntries.GetEntries().Count() > 0)
+@if (Model.MatchedIndices != null) {
+    if (!Model.MatchedIndices.IsExact() && Model.GetMatchIndices().Count() > 0)
     {
         <span class="subtitle">Did you mean?</span>
     }
-    if (Model.MatchedEntries.GetEntries().Count() == 1)
+    if (Model.GetMatchIndices().Count() == 1)
     {
-        ShowEntryGroup(Model.MatchedEntries.GetEntries().First().Word);
+        ShowEntryGroup(Model.GetMatchEntries().First().Word);
     }
     else if (Model.Index != null)
     {
-        ShowEntryGroup(Model.MatchedEntries.GetEntries()[Model.Index - 1 ?? default(int)].Word);
+        ShowEntryGroup(Model.GetMatchEntries()[Model.Index - 1 ?? default(int)].Word);
         if (Model.Index > 1)
         {
             <script type="text/javascript">
@@ -104,18 +104,18 @@
             </script>
         }
     }
-    else if (Model.MatchedEntries.GetEntries().Count() > 1)
+    else if (Model.GetMatchIndices().Count() > 1)
     {
         <div class="list-group">
-            @foreach (var it in Model.MatchedEntries.GetEntries().Select((e, i) => new { Entry = e, Index = i }))
+            @foreach (var it in Model.GetMatchIndices().Select((m, i) => new { MatchIndex = m, Index = i }))
             {
-                var entry = it.Entry;
+                var entry = Model.GetEntryByIndex(it.MatchIndex.EntryIndex);
                 var i = it.Index + 1;
                 var label = entry.Word + (entry.Origin != "?" ? (" (" + entry.Origin + ")") : "") +
-                    (entry.Senses.Count() > 0 ? " " + entry.Senses.First().EnglishLemma : "");
+                    (entry.Senses.Count() > 0 ? " " + entry.Senses[it.MatchIndex.SenseIndex].EnglishLemma : "");
                 <form>
                     <input type="hidden" asp-for="Word" value="@entry.Word"/>
-                    @if (Model.MatchedEntries.IsExact())
+                    @if (Model.MatchedIndices.IsExact())
                     {
                         <input type="hidden" asp-for="Index" value="@i"/>
                     }
